@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+  <title>robertino · IoT & AI terminal portfolio</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0a0a0c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .terminal-wrap {
+      font-family: 'JetBrains Mono', monospace;
+      background: #0f0f0f;
+      color: #e8e8e8;
+      border-radius: 16px;
+      border: 0.5px solid #2a2a2a;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 1300px;
+      margin: 0 auto;
+      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.6);
+      transition: all 0.2s ease;
+    }
+
+    .titlebar {
+      background: #1a1a1a;
+      border-bottom: 0.5px solid #2a2a2a;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+
+    .titlebar-text {
+      margin-left: 8px;
+      font-size: 11px;
+      color: #aaa;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .terminal-body {
+      flex: 1;
+      padding: 20px 22px;
+      overflow-y: auto;
+      max-height: 65vh;
+      min-height: 360px;
+      background: #0f0f0f;
+      scroll-behavior: smooth;
+    }
+
+    .output-block {
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+
+    .prompt-line {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      margin-bottom: 2px;
+    }
+
+    .prompt-user, .prompt-host, .prompt-path, .prompt-sym, .typed-cmd {
+      font-size: 13px;
+    }
+    .prompt-user { color: #4ec9b0; font-weight: 500; }
+    .prompt-at { color: #888; font-size: 13px; }
+    .prompt-host { color: #569cd6; font-weight: 500; }
+    .prompt-path { color: #ce9178; }
+    .prompt-sym { color: #dcdcaa; margin-right: 6px; }
+    .typed-cmd { color: #f8f8f2; }
+
+    .out {
+      font-size: 12.5px;
+      line-height: 1.75;
+      color: #ccc;
+      padding-left: 2px;
+    }
+    .out-head {
+      font-size: 13px;
+      font-weight: 700;
+      color: #4ec9b0;
+      margin: 8px 0 4px;
+      letter-spacing: 0.04em;
+    }
+    .out-label { color: #569cd6; font-size: 12px; }
+    .out-val { color: #e8e8e8; font-size: 12px; }
+    .out-dim { color: #666; font-size: 12px; }
+    .out-accent { color: #dcdcaa; font-size: 12px; }
+    .out-green { color: #6db35a; }
+    .out-link {
+      color: #569cd6;
+      font-size: 12px;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .out-link:hover { text-decoration: underline; }
+
+    .tag {
+      display: inline-block;
+      border: 0.5px solid #3a3a3a;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 11px;
+      color: #4ec9b0;
+      margin: 2px 3px 2px 0;
+      background: #1a2a2a;
+      white-space: nowrap;
+    }
+    .tag-blue {
+      color: #569cd6;
+      background: #1a1f2a;
+      border-color: #2a3a4a;
+    }
+    .tag-yellow {
+      color: #dcdcaa;
+      background: #232310;
+      border-color: #3a3a18;
+    }
+
+    .award-item {
+      color: #ccc;
+      font-size: 12px;
+      line-height: 1.8;
+      word-break: break-word;
+    }
+    .award-item::before { content: '  * '; color: #febc2e; }
+
+    /* PROJECT CARDS — NOW CLICKABLE */
+    .proj-card {
+      display: block;           /* makes the anchor behave like a block */
+      border: 0.5px solid #2a2a2a;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin: 6px 0;
+      background: #141414;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .proj-card:hover {
+      background: #1e1e1e;
+      border-color: #4ec9b0;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .proj-title {
+      color: #dcdcaa;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+    .proj-desc {
+      color: #aaa;
+      font-size: 12px;
+      line-height: 1.65;
+      word-break: break-word;
+    }
+    .proj-tags {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .cert-item {
+      font-size: 12px;
+      color: #ccc;
+      line-height: 1.9;
+      word-break: break-word;
+    }
+    .cert-item::before { content: '  + '; color: #569cd6; }
+
+    .divider {
+      border: none;
+      border-top: 0.5px solid #222;
+      margin: 6px 0;
+    }
+
+    .ascii pre {
+      font-size: 10px;
+      line-height: 1.25;
+      color: #4ec9b0;
+      opacity: 0.85;
+      margin-bottom: 6px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .suggestions {
+      padding: 8px 18px;
+      border-top: 0.5px solid #1e1e1e;
+      border-bottom: 0.5px solid #1e1e1e;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      background: #0f0f0f;
+    }
+    .sugg-btn {
+      background: #1a1a1a;
+      border: 0.5px solid #333;
+      color: #bbb;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.15s;
+      white-space: nowrap;
+    }
+    .sugg-btn:hover {
+      background: #252525;
+      color: #4ec9b0;
+      border-color: #4ec9b0;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px 14px;
+      background: #0f0f0f;
+      gap: 0;
+      border-top: 0.5px solid #1e1e1e;
+      flex-wrap: wrap;
+    }
+    .input-prompt {
+      color: #4ec9b0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      white-space: nowrap;
+      margin-right: 8px;
+    }
+    #cmd-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #f8f8f2;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      flex: 1;
+      min-width: 120px;
+      caret-color: #4ec9b0;
+    }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 7px;
+      height: 13px;
+      background: #4ec9b0;
+      vertical-align: middle;
+      animation: blink 1.1s step-start infinite;
+      margin-left: 1px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* Responsive adjustments */
+    @media (max-width: 720px) {
+      body { padding: 0.8rem; }
+      .terminal-body { padding: 16px 14px; max-height: 55vh; min-height: 300px; }
+      .titlebar { padding: 8px 14px; }
+      .titlebar-text { font-size: 10px; }
+      .prompt-user, .prompt-host, .prompt-path, .prompt-sym, .typed-cmd, .input-prompt { font-size: 12px; }
+      .out, .out-label, .out-val, .out-dim, .out-accent, .award-item, .cert-item { font-size: 11.5px; line-height: 1.7; }
+      .out-head { font-size: 12px; }
+      .tag { font-size: 10px; padding: 1px 6px; white-space: nowrap; }
+      .proj-card { padding: 8px 12px; }
+      .proj-title { font-size: 12px; }
+      .proj-desc { font-size: 11px; }
+      .suggestions { padding: 8px 12px; gap: 6px; }
+      .sugg-btn { font-size: 10px; padding: 4px 10px; }
+      .input-row { padding: 10px 16px; }
+      #cmd-input { font-size: 12px; }
+      .ascii pre { font-size: 8px; line-height: 1.2; }
+    }
+    @media (max-width: 480px) {
+      .terminal-body { padding: 12px 10px; max-height: 52vh; }
+      .suggestions { gap: 5px; }
+      .sugg-btn { font-size: 9px; padding: 4px 9px; }
+      .input-prompt { font-size: 11px; margin-right: 5px; }
+      #cmd-input { font-size: 11px; }
+      .prompt-line { margin-top: 10px; }
+      .tag { font-size: 9px; padding: 0px 5px; }
+      .proj-card { padding: 6px 10px; }
+    }
+    @media (max-width: 380px) {
+      .sugg-btn, .tag { white-space: normal; word-break: keep-all; }
+    }
+
+    .terminal-body::-webkit-scrollbar { width: 5px; }
+    .terminal-body::-webkit-scrollbar-track { background: #1a1a1a; }
+    .terminal-body::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 4px; }
+  </style>
+</head>
+<body>
+<div class="terminal-wrap">
+  <div class="titlebar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <span class="titlebar-text">portfolio.sh — robertino@iot-ai:~/responsive</span>
+  </div>
+
+  <div class="terminal-body" id="output">
+    <div class="ascii">
+      <pre>
+ ____       _               _   _
+|  _ \ ___ | |__   ___ _ __| |_(_)_ __   ___
+| |_) / _ \| '_ \ / _ \ '__| __| | '_ \ / _ \
+|  _ < (_) | |_) |  __/ |  | |_| | | | | (_) |
+|_| \_\___/|_.__/ \___|_|   \__|_|_| |_|\___/</pre>
+    </div>
+    <div class="out out-dim"># IoT &amp; AI Engineer Portfolio — type <span class="out-accent">help</span> for commands</div>
+    <div class="out out-dim"># ─────────────────────────────────────────────────</div>
+    <div id="history"></div>
+    <div class="prompt-line">
+      <span class="prompt-user">robertino</span><span class="prompt-at">@</span><span class="prompt-host">iot-ai</span><span class="prompt-at">:</span><span class="prompt-path">~</span><span class="prompt-sym"> $&nbsp;</span><span class="cursor-blink"></span>
+    </div>
+  </div>
+
+  <div class="suggestions">
+    <span class="out-dim" style="font-size:11px; align-self:center;">⇢ quick:</span>
+    <button class="sugg-btn" onclick="runCmd('whoami')">whoami</button>
+    <button class="sugg-btn" onclick="runCmd('skills')">skills</button>
+    <button class="sugg-btn" onclick="runCmd('projects')">projects</button>
+    <button class="sugg-btn" onclick="runCmd('awards')">awards</button>
+    <button class="sugg-btn" onclick="runCmd('certs')">certs</button>
+    <button class="sugg-btn" onclick="runCmd('contact')">contact</button>
+    <button class="sugg-btn" onclick="runCmd('help')">help</button>
+  </div>
+
+  <div class="input-row">
+    <span class="input-prompt">robertino@iot-ai:~ $&nbsp;</span>
+    <input id="cmd-input" type="text" autocomplete="off" spellcheck="false" placeholder="try 'help' or 'projects'" />
+  </div>
+</div>
+
+<script>
+  // ----- COMMANDS DATABASE with CLICKABLE PROJECT CARDS -----
+  const COMMANDS = {
+    help: () => `
+<div class="out-head">available commands</div>
+<div class="out"><span class="out-label">  whoami    </span><span class="out-val">— profile & bio</span></div>
+<div class="out"><span class="out-label">  skills    </span><span class="out-val">— technical skills</span></div>
+<div class="out"><span class="out-label">  projects  </span><span class="out-val">— featured projects (clickable cards)</span></div>
+<div class="out"><span class="out-label">  experience</span><span class="out-val">— work & internship history</span></div>
+<div class="out"><span class="out-label">  awards    </span><span class="out-val">— competition wins & recognition</span></div>
+<div class="out"><span class="out-label">  certs     </span><span class="out-val">— certifications</span></div>
+<div class="out"><span class="out-label">  contact   </span><span class="out-val">— get in touch</span></div>
+<div class="out"><span class="out-label">  clear     </span><span class="out-val">— clear terminal</span></div>`,
+
+    whoami: () => `
+<div class="out-head">robertino gladden narendra</div>
+<div class="out"><span class="out-label">role      </span><span class="out-val">  IoT & AI Engineer</span></div>
+<div class="out"><span class="out-label">education </span><span class="out-val">  B.Sc. Telecommunication Engineering — Telkom University (GPA 3.33)</span></div>
+<div class="out"><span class="out-label">location  </span><span class="out-val">  Bandung, 40257, Indonesia</span></div>
+<div class="out"><span class="out-label">english   </span><span class="out-val">  C1 CEFR Level | ECCT 3.50 | EPrT 487</span></div>
+<hr class="divider"/>
+<div class="out" style="color:#ccc;line-height:1.8;font-size:12px;">
+  Telecommunication Engineering undergrad with strong expertise in<br>
+  <span class="out-accent">Internet of Things</span> and <span class="out-accent">Machine Learning</span>. Experienced in leading<br>
+  interdisciplinary research projects, recognized with national &amp;<br>
+  international awards. Builds data-driven solutions &amp; intelligent<br>
+  embedded systems.
+</div>`,
+
+    skills: () => `
+<div class="out-head">[ AI / ML ]</div>
+<div style="padding-left:4px;margin-bottom:8px; display:flex; flex-wrap:wrap;">
+  <span class="tag">TensorFlow</span><span class="tag">YOLOv11</span><span class="tag">HuggingFace</span><span class="tag">LLM</span><span class="tag">NLP</span><span class="tag">Computer Vision</span><span class="tag">CUDA</span><span class="tag">DeepSORT</span><span class="tag">TensorRT</span>
+</div>
+<div class="out-head">[ Internet of Things ]</div>
+<div style="padding-left:4px;margin-bottom:8px; display:flex; flex-wrap:wrap;">
+  <span class="tag tag-blue">MQTT</span><span class="tag tag-blue">LoRa</span><span class="tag tag-blue">CoAP</span><span class="tag tag-blue">Modbus</span><span class="tag tag-blue">ESP32</span><span class="tag tag-blue">Arduino</span><span class="tag tag-blue">Node-RED</span><span class="tag tag-blue">AWS IoT</span><span class="tag tag-blue">Azure IoT</span>
+</div>
+<div class="out-head">[ Programming ]</div>
+<div style="padding-left:4px;margin-bottom:8px; display:flex; flex-wrap:wrap;">
+  <span class="tag tag-yellow">Python</span><span class="tag tag-yellow">C/C++</span><span class="tag tag-yellow">JavaScript</span><span class="tag tag-yellow">React</span><span class="tag tag-yellow">Docker</span><span class="tag tag-yellow">Grafana</span><span class="tag tag-yellow">Git</span><span class="tag tag-yellow">SQL</span>
+</div>
+<div class="out-head">[ Telecom ]</div>
+<div style="padding-left:4px; display:flex; flex-wrap:wrap;">
+  <span class="tag" style="color:#c586c0;background:#1f1529;border-color:#3a2545;">TCP/IP</span><span class="tag" style="color:#c586c0;background:#1f1529;border-color:#3a2545;">LTE/5G</span><span class="tag" style="color:#c586c0;background:#1f1529;border-color:#3a2545;">RF Planning</span><span class="tag" style="color:#c586c0;background:#1f1529;border-color:#3a2545;">Drive Test</span><span class="tag" style="color:#c586c0;background:#1f1529;border-color:#3a2545;">Cisco</span>
+</div>`,
+
+    // ---------- PROJECTS SECTION with CLICKABLE CARDS ----------
+    // Replace the placeholder URLs (#) with your actual project links.
+    projects: () => `
+<div class="out-head">featured projects — click any card to open project link</div>
+<a href="https://drive.google.com/file/d/1FuntMTwF2he_-j3C2g1w0LqqOaRRYauZ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="proj-card">
+  <div class="proj-title">PPE AI — Jetson Orin NX</div>
+  <div class="proj-desc">
+    Real-time PPE compliance & surveillance system deployed on NVIDIA Jetson Orin NX (reComputer J4011).
+    YOLOv11 + DeepSORT + TensorRT achieving <span style="color:#6db35a">90% accuracy</span> on 10+ safety items.
+    35% lower latency via FFmpeg HLS. Live dashboard with Telegram violation notifications.
+    <span style="color:#666">507 annotated instances across 115 images.</span>
+  </div>
+  <div class="proj-tags">
+    <span class="tag">YOLOv11</span><span class="tag">DeepSORT</span><span class="tag">TensorRT</span><span class="tag tag-blue">Jetson Orin NX</span><span class="tag tag-blue">RTSP</span><span class="tag tag-yellow">Python</span>
+  </div>
+</a>
+
+<a href="https://drive.google.com/file/d/1a1-WAEgqHFmXgvCGOduDvOUY1PUURRl5/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="proj-card">
+  <div class="proj-title">Sihapin — YNSF 2025 <span style="color:#febc2e;font-size:11px;">[ GOLD MEDAL ]</span></div>
+  <div class="proj-desc">
+    Smart aquaponic system with AI-driven automation + renewable energy integration.
+    MQTT-based IoT with <span style="color:#6db35a">>99% transmission reliability</span> updating every 5s.
+    Reduced manual intervention by 40%. Custom webserver for 24/7 live data viz &amp;
+    remote control, powered by solar panels.
+  </div>
+  <div class="proj-tags">
+    <span class="tag tag-blue">MQTT</span><span class="tag tag-blue">ESP32</span><span class="tag">AI Automation</span><span class="tag tag-yellow">Web Server</span><span class="tag">Solar IoT</span>
+  </div>
+</a>
+
+<a href="https://gnet-lookv2.vercel.app/" target="_blank" rel="noopener noreferrer" class="proj-card">
+  <div class="proj-title">GNet Analyzer — LTE Drive Test Tool</div>
+  <div class="proj-desc">
+    Web-based drive test analyzer for G-NetTrack Pro. Parses <strong>.txt</strong> logs and <strong>.kml</strong> events,
+    generates interactive <strong>RSRP/RSRQ/SNR</strong> charts, Leaflet map with signal layers, and AI-powered insights (Groq LLM).
+    Built with vanilla JS, Chart.js, and Leaflet — fully static, runs entirely in browser.
+  </div>
+  <div class="proj-tags">
+    <span class="tag">G-NetTrack Pro</span><span class="tag">Chart.js</span><span class="tag">Leaflet</span>
+    <span class="tag tag-yellow">AI (Groq)</span><span class="tag tag-blue">Python</span><span class="tag tag-blue">JavaScript</span>
+  </div>
+</a>
+
+<div class="out out-dim" style="font-size:11px; margin-top:8px;">💡 Tip: hover over any project card and click to open its external page.</div>`,
+
+    experience: () => `
+<div class="out-head">work experience</div>
+<div class="out"><span style="color:#dcdcaa;font-size:13px;font-weight:700;">Telkom Indonesia</span> <span class="out-dim">— Solution Architect Intern</span></div>
+<div class="out out-dim" style="margin-bottom:6px;">  Jul 2025 – Sep 2025 | South Jakarta</div>
+<div class="out" style="color:#aaa;font-size:12px;line-height:1.75;padding-left:4px;">
+  Integrated EM300TH sensor + Antares IoT (LoRa, mDash.net).<br>
+  Deployed PPE AI system on Jetson Orin NX with 90% accuracy.<br>
+  Engineered BLE asset tracking with sub-2s room-level detection.
+</div>
+<hr class="divider"/>
+<div class="out"><span style="color:#dcdcaa;font-size:13px;font-weight:700;">Mobile Communication Laboratory</span> <span class="out-dim">— IoT Research Assistant</span></div>
+<div class="out out-dim" style="margin-bottom:6px;">  May 2024 – Present | Bandung</div>
+<div class="out" style="color:#aaa;font-size:12px;line-height:1.75;padding-left:4px;">
+  Led IoT dev for 5+ interdisciplinary projects (MQTT, CoAP, HTTP, LoRa).<br>
+  10% improved network efficiency in test deployments.<br>
+  5 awards from 3+ national-level IoT competitions.
+</div>
+<hr class="divider"/>
+<div class="out"><span style="color:#dcdcaa;font-size:13px;font-weight:700;">DBS Foundation — Coding Camp 2025</span> <span class="out-dim">— ML Engineer Apprentice</span></div>
+<div class="out out-dim" style="margin-bottom:6px;">  Feb 2025 – Jul 2025 | Bandung</div>
+<div class="out" style="color:#aaa;font-size:12px;line-height:1.75;padding-left:4px;">
+  25+ courses: NumPy, Pandas, Scikit-learn, TensorFlow, Keras.<br>
+  Built 7+ predictive models including 96% accuracy gesture recognition.<br>
+  Unit testing on 5+ projects, AI project management & R&D skills.
+</div>`,
+
+    awards: () => `
+<div class="out-head">awards & recognition</div>
+<div class="award-item">YNSF 2025 Gold Medal — Engineering University Category (Indonesia Young Scientist Assoc.)</div>
+<div class="award-item">2nd Place — IEEE YESIST12 2024, National Round (IEEE Indonesia)</div>
+<div class="award-item">2nd Place — IT Fest Vol 4.0 IoT Category (HIMTI Universitas Paramadina)</div>
+<div class="award-item">Finalist — ITechno Cup 2024 Innovation Creation (Politeknik Negeri Jakarta)</div>
+<div class="award-item">Top 10 — UI/UX Design Competition, University Category (Surabaya Developer)</div>
+<div class="award-item">Top 700 Candidate — EricssonEdge Academia Program 2.0, 2025</div>
+<div class="award-item">PKM Internal Selection Proposal (PKM-KC) 2024 — Telkom University</div>`,
+
+    certs: () => `
+<div class="out-head">certifications</div>
+<div class="cert-item">Generative AI/LLM on Alibaba Cloud PAI — <span class="out-dim">Alibaba Cloud, 2026</span></div>
+<div class="cert-item">OCI 2025 Certified AI Foundations Associate — <span class="out-dim">Oracle, 2025</span></div>
+<div class="cert-item">Getting Started with AI on Jetson Nano — <span class="out-dim">NVIDIA, 2025</span></div>
+<div class="cert-item">AWS AI Practitioner — <span class="out-dim">Amazon Web Services, 2025</span></div>
+<div class="cert-item">AWS IoT Foundation — <span class="out-dim">Amazon Web Services, 2025</span></div>
+<div class="cert-item">Machine Learning Specialization — <span class="out-dim">DeepLearning.AI, 2025</span></div>
+<div class="cert-item">Python Essentials I — <span class="out-dim">Cisco, 2024</span></div>`,
+
+    contact: () => `
+<div class="out-head">get in touch</div>
+<div class="out"><span class="out-label">  email    </span><span class="out-val">  </span><a class="out-link" href="mailto:gladdenrobertino@gmail.com">gladdenrobertino@gmail.com</a></div>
+<div class="out"><span class="out-label">  phone    </span><span class="out-val">  +62 813-1725-1029</span></div>
+<div class="out"><span class="out-label">  linkedin </span><span class="out-val">  </span><a class="out-link" href="https://www.linkedin.com/in/robertinogladdennarendra" target="_blank" rel="noopener">linkedin.com/in/robertinogladdennarendra</a></div>
+<div class="out"><span class="out-label">  location </span><span class="out-val">  Bandung, Indonesia</span></div>
+<hr class="divider"/>
+<div class="out out-dim" style="font-size:11px;">open to IoT & AI engineering roles, research collaborations, and freelance projects.</div>`,
+
+    clear: () => 'CLEAR'
+  };
+
+  const historyDiv = document.getElementById('history');
+  const cmdInput = document.getElementById('cmd-input');
+  const outputContainer = document.getElementById('output');
+
+  function scrollToBottom() {
+    outputContainer.scrollTop = outputContainer.scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  function renderPromptLine(command) {
+    return `<div class="prompt-line" style="margin-top:14px;">
+      <span class="prompt-user">robertino</span><span class="prompt-at">@</span><span class="prompt-host">iot-ai</span><span class="prompt-at">:</span><span class="prompt-path">~</span><span class="prompt-sym"> $&nbsp;</span><span class="typed-cmd">${escapeHtml(command)}</span>
+    </div>`;
+  }
+
+  function runCmd(rawCmd) {
+    let cmd = rawCmd.trim().toLowerCase();
+    if (cmd === "") return;
+
+    if (cmd === 'clear') {
+      historyDiv.innerHTML = '';
+      cmdInput.value = '';
+      scrollToBottom();
+      return;
+    }
+
+    const commandFn = COMMANDS[cmd];
+    let outputHtml = renderPromptLine(rawCmd);
+
+    if (commandFn) {
+      const result = commandFn();
+      outputHtml += `<div class="output-block">${result}</div>`;
+    } else {
+      outputHtml += `<div class="output-block"><div class="out" style="color:#e06c75;font-size:12px;">command not found: <span style="color:#f8f8f2">${escapeHtml(cmd)}</span> — try <span class="out-accent">help</span></div></div>`;
+    }
+
+    historyDiv.innerHTML += outputHtml;
+    cmdInput.value = '';
+    scrollToBottom();
+  }
+
+  cmdInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      runCmd(cmdInput.value);
+    }
+  });
+
+  outputContainer.addEventListener('click', () => cmdInput.focus());
+  document.querySelector('.terminal-wrap')?.addEventListener('click', (e) => {
+    if (e.target.classList?.contains('sugg-btn')) return;
+    cmdInput.focus();
+  });
+  cmdInput.focus();
+</script>
+</body>
+</html>
